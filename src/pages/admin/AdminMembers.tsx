@@ -37,15 +37,22 @@ export default function AdminMembers() {
   }, []);
 
   const fetchMembers = async () => {
-    const { data, error } = await supabase
-      .from('team_members')
-      .select('*')
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-    if (error) {
-      toast.error('Üyeler yüklenemedi');
-    } else {
-      setMembers(data || []);
+      if (error) {
+        console.error('Üyeler yükleme hatası:', error);
+        toast.error('Üyeler yüklenemedi: ' + error.message);
+      } else {
+        console.log('Üyeler yüklendi:', data?.length || 0);
+        setMembers(data || []);
+      }
+    } catch (error) {
+      console.error('Fetch hatası:', error);
+      toast.error('Üyeler yüklenirken bir hata oluştu');
     }
   };
 
@@ -87,34 +94,51 @@ export default function AdminMembers() {
       photo: photoUrl,
     };
 
-    if (editingMember) {
-      const { error } = await supabase
-        .from('team_members')
-        .update(memberData)
-        .eq('id', editingMember.id);
+    try {
+      if (editingMember) {
+        const { data, error } = await supabase
+          .from('team_members')
+          .update(memberData)
+          .eq('id', editingMember.id)
+          .select();
 
-      if (error) {
-        toast.error('Güncelleme başarısız');
+        if (error) {
+          console.error('Güncelleme hatası:', error);
+          toast.error('Güncelleme başarısız: ' + error.message);
+        } else {
+          console.log('Üye güncellendi:', data);
+          toast.success('Üye başarıyla güncellendi');
+          fetchMembers();
+          resetForm();
+        }
       } else {
-        toast.success('Üye güncellendi');
-        fetchMembers();
-        resetForm();
-      }
-    } else {
-      const { error } = await supabase
-        .from('team_members')
-        .insert([memberData]);
+        const { data, error } = await supabase
+          .from('team_members')
+          .insert([memberData])
+          .select();
 
-      if (error) {
-        toast.error('Ekleme başarısız');
-      } else {
-        toast.success('Üye eklendi');
-        fetchMembers();
-        resetForm();
+        if (error) {
+          console.error('Ekleme hatası:', error);
+          
+          // RLS policy hatası kontrolü
+          if (error.code === '42501' || error.message.includes('permission denied') || error.message.includes('policy')) {
+            toast.error('Erişim izni hatası: Supabase RLS politikalarını kontrol edin. Admin kullanıcıların team_members tablosuna INSERT yapma izni olmalı.');
+          } else {
+            toast.error('Ekleme başarısız: ' + error.message);
+          }
+        } else {
+          console.log('Üye eklendi:', data);
+          toast.success('Üye başarıyla eklendi');
+          fetchMembers();
+          resetForm();
+        }
       }
+    } catch (error) {
+      console.error('Form gönderme hatası:', error);
+      toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setUploading(false);
     }
-
-    setUploading(false);
   };
 
   const handleDelete = async (id: string, photo: string | null) => {
@@ -232,46 +256,91 @@ export default function AdminMembers() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tüm Üyeler</CardTitle>
+          <CardTitle>En Aktif Spotter'lar (Ekip Üyeleri)</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ad Soyad</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Instagram</TableHead>
-                <TableHead>İşlemler</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell>{member.name}</TableCell>
-                  <TableCell>{member.role}</TableCell>
-                  <TableCell>{member.instagram}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(member)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(member.id, member.photo)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {members.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Henüz ekip üyesi yok. Yeni üye eklemek için yukarıdaki butonu kullanın.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fotoğraf</TableHead>
+                  <TableHead>Ad Soyad</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Biyografi</TableHead>
+                  <TableHead>Instagram</TableHead>
+                  <TableHead className="text-right">İşlemler</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {members.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      {member.photo ? (
+                        <img 
+                          src={member.photo} 
+                          alt={member.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground">Fotoğraf Yok</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{member.name}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-sm">
+                        {member.role}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <p className="text-sm text-muted-foreground truncate">{member.bio || '-'}</p>
+                    </TableCell>
+                    <TableCell>
+                      {member.instagram ? (
+                        <a 
+                          href={`https://instagram.com/${member.instagram.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {member.instagram}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditDialog(member)}
+                          className="gap-1"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="hidden sm:inline">Düzenle</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(member.id, member.photo)}
+                          className="gap-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="hidden sm:inline">Sil</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

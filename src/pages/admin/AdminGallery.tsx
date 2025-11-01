@@ -107,23 +107,56 @@ export default function AdminGallery() {
   const handleDelete = async (id: string, src: string) => {
     if (!confirm('Bu resmi silmek istediğinize emin misiniz?')) return;
 
-    const fileName = src.split('/').pop();
-    if (fileName) {
-      await supabase.storage
-        .from('gallery')
-        .remove([fileName]);
-    }
+    try {
+      // Supabase Storage URL'den dosya yolunu çıkar
+      // URL formatı: https://...supabase.co/storage/v1/object/public/gallery/filename.jpg
+      let filePath = '';
+      
+      if (src.includes('/storage/v1/object/public/gallery/')) {
+        // Supabase Storage public URL'den yol çıkar
+        const parts = src.split('/storage/v1/object/public/gallery/');
+        if (parts.length > 1) {
+          filePath = parts[1];
+        }
+      } else if (src.includes('gallery/')) {
+        // Direkt gallery/ ile başlıyorsa
+        const parts = src.split('gallery/');
+        if (parts.length > 1) {
+          filePath = parts[1];
+        }
+      } else {
+        // Sadece dosya adı varsa
+        filePath = src.split('/').pop() || '';
+      }
 
-    const { error } = await supabase
-      .from('gallery_images')
-      .delete()
-      .eq('id', id);
+      // Storage'dan dosyayı sil
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('gallery')
+          .remove([filePath]);
 
-    if (error) {
-      toast.error('Silme başarısız');
-    } else {
-      toast.success('Resim silindi');
-      fetchImages();
+        if (storageError) {
+          console.error('Storage silme hatası:', storageError);
+          // Storage hatası olsa bile veritabanından silmeye devam et
+        }
+      }
+
+      // Veritabanından kaydı sil
+      const { error: dbError } = await supabase
+        .from('gallery_images')
+        .delete()
+        .eq('id', id);
+
+      if (dbError) {
+        console.error('Veritabanı silme hatası:', dbError);
+        toast.error('Silme başarısız: ' + dbError.message);
+      } else {
+        toast.success('Resim silindi');
+        fetchImages();
+      }
+    } catch (error) {
+      console.error('Silme hatası:', error);
+      toast.error('Silme sırasında bir hata oluştu');
     }
   };
 
