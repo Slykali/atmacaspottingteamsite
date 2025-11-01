@@ -174,7 +174,7 @@ const Index = () => {
                   </div>
                   <h3 className="font-bold text-lg mb-2">Güçlü Topluluk</h3>
                   <p className="text-muted-foreground text-sm">
-                    200+ aktif üye ile Türkiye'nin en büyük spotter topluluğu
+                    20+ aktif üye ile Türkiye'nin en büyük spotter topluluğu
                   </p>
                 </div>
                 
