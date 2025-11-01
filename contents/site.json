@@ -1,0 +1,23 @@
+{
+    "siteName": "Atmaca Spotting Team",
+    "slogan": "Göklerde iz peşinde",
+    "description": "Havacılık tutkunlarını bir araya getiren profesyonel uçak spotter topluluğu",
+    "email": "info@atmacaspotting.com",
+    "social": {
+      "instagram": "https://instagram.com/atmacaspotting",
+      "twitter": "https://twitter.com/atmacaspotting",
+      "youtube": "https://youtube.com/@atmacaspotting"
+    },
+    "about": {
+      "short": "Atmaca Spotting Team, havacılık fotoğrafçılığı alanında faaliyet gösteren bireyleri bir araya getirmeyi amaçlayan bir oluşumdur. Sivil ve askeri hava araçlarının fotoğraflanması yönünde çalışmalar yürüten ekibimiz, havacılık fotoğrafçılığının yaygınlaşmasına katkı sağlamayı hedeflemektedir.",
+      "mission": "Ekip olarak temel prensibimiz; havacılık tutkusunu fotoğraf sanatı ile birleştirerek, sektöre ve topluma değer katan içerikler üretmektir. Atmaca Spotting Team, ortak ilgi alanlarına sahip havacılık fotoğrafçılarını aynı çatı altında toplayarak, fotoğrafları aracılığıyla havacılığın gelişimine katkıda bulunmaya devam etmektedir.",
+      "ethics": [
+        "Havaalanı güvenlik kurallarına tam uyum",
+        "Yasak bölgelere girmeme",
+        "Diğer spotterlar ve havacılık personeline saygı",
+        "Telif haklarına ve gizliliğe riayet",
+        "Çevre ve doğaya zarar vermeme"
+      ]
+    }
+  }
+  

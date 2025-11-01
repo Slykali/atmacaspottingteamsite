@@ -1,0 +1,39 @@
+[
+    {
+      "name": "Mehmet Yılmaz",
+      "role": "Kurucu & Baş Koordinatör",
+      "bio": "2018'den beri topluluğumuzu yönetiyor. 10+ yıllık spotting deneyimi, özellikle geniş gövde uçaklar ve nadir livery'ler konusunda uzman.",
+      "photo": "/placeholder.svg",
+      "social": {
+        "instagram": "@mehmet_spots"
+      }
+    },
+    {
+      "name": "Ayşe Demir",
+      "role": "Etkinlik Koordinatörü",
+      "bio": "Tüm spotting gezilerimizi ve atölyelerimizi organize ediyor. Gece fotoğrafçılığı tutkunu.",
+      "photo": "/placeholder.svg",
+      "social": {
+        "instagram": "@ayse_aviation"
+      }
+    },
+    {
+      "name": "Can Özkan",
+      "role": "Teknik Danışman",
+      "bio": "Havacılık mühendisi ve deneyimli spotter. Üyelere ekipman ve teknik konularda rehberlik ediyor.",
+      "photo": "/placeholder.svg",
+      "social": {
+        "instagram": "@can_avgeek"
+      }
+    },
+    {
+      "name": "Zeynep Kaya",
+      "role": "Sosyal Medya Yöneticisi",
+      "bio": "Topluluğumuzun dijital yüzü. Tüm platformlarda içerik üretimi ve yönetimi.",
+      "photo": "/placeholder.svg",
+      "social": {
+        "instagram": "@zeynep_inthesky"
+      }
+    }
+  ]
+  

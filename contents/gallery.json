@@ -1,0 +1,51 @@
+[
+    {
+      "src": "/src/assets/gallery-1.jpg",
+      "alt": "A320 havada, yan görünüm",
+      "tags": ["A320", "Yaklaşma", "Gündüz"],
+      "location": "İstanbul Havalimanı",
+      "date": "2024-10-15",
+      "photographer": "Ahmet Yılmaz"
+    },
+    {
+      "src": "/src/assets/gallery-2.jpg",
+      "alt": "Boeing 737 kalkış yapıyor",
+      "tags": ["B737", "Kalkış", "Gün Batımı"],
+      "location": "Sabiha Gökçen Havalimanı",
+      "date": "2024-09-22",
+      "photographer": "Mehmet Kaya"
+    },
+    {
+      "src": "/src/assets/gallery-3.jpg",
+      "alt": "Geniş gövde uçak iniş anında",
+      "tags": ["Wide-body", "İniş", "Alacakaranlık"],
+      "location": "Antalya Havalimanı",
+      "date": "2024-11-03",
+      "photographer": "Zeynep Demir"
+    },
+    {
+      "src": "/src/assets/gallery-4.jpg",
+      "alt": "Bölgesel jet taksi yolunda",
+      "tags": ["Regional", "Taksi", "Gündüz"],
+      "location": "İzmir Adnan Menderes",
+      "date": "2024-08-18",
+      "photographer": "Can Öztürk"
+    },
+    {
+      "src": "/src/assets/gallery-5.jpg",
+      "alt": "Uçak burnu yakın çekim",
+      "tags": ["Detay", "Burun", "Gündüz"],
+      "location": "İstanbul Havalimanı",
+      "date": "2024-10-28",
+      "photographer": "Elif Şahin"
+    },
+    {
+      "src": "/src/assets/gallery-6.jpg",
+      "alt": "Gece ışıklandırması altında uçak",
+      "tags": ["Gece", "Uzun Pozlama", "Apron"],
+      "location": "Ankara Esenboğa",
+      "date": "2024-07-12",
+      "photographer": "Burak Arslan"
+    }
+  ]
+  

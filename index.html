@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atmaca Spotting Team - Göklerde İz Peşinde</title>
+    
+    <!-- Google Fonts - Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="description" content="Havacılık tutkunlarını bir araya getiren profesyonel uçak spotter topluluğu. Etkinlikler, fotoğraf gezileri ve bilgi paylaşımı." />
+    <meta name="author" content="Atmaca Spotting Team" />
+    <meta name="keywords" content="uçak spotting, aviation photography, aircraft spotting, havacılık fotoğrafçılığı, plane spotting Turkey, spotter community" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://atmacaspotting.com/" />
+
+    <meta property="og:title" content="Atmaca Spotting Team - Göklerde İz Peşinde" />
+    <meta property="og:description" content="Havacılık tutkunlarını bir araya getiren profesyonel uçak spotter topluluğu. Etkinlikler, fotoğraf gezileri ve bilgi paylaşımı." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://atmacaspotting.com/" />
+    <meta property="og:image" content="https://atmacaspotting.com/atmaca-logo.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Atmaca Spotting Team - Göklerde İz Peşinde" />
+    <meta name="twitter:description" content="Havacılık tutkunlarını bir araya getiren profesyonel uçak spotter topluluğu." />
+    <meta name="twitter:site" content="@atmacaspotting" />
+    <meta name="twitter:image" content="https://atmacaspotting.com/atmaca-logo.jpg" />
+    
+    <!-- Google Analytics Placeholder -->
+    <!-- Uncomment and add your GA4 Measurement ID
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    -->
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Remove Loveable branding if present
+      (function() {
+        const removeLoveable = () => {
+          const selectors = [
+            '[class*="loveable" i]',
+            '[id*="loveable" i]',
+            'a[href*="loveable" i]',
+            '[data-loveable]',
+            '[class*="made-by" i]',
+            '[class*="watermark" i]',
+            '[class*="attribution" i]'
+          ];
+          selectors.forEach(selector => {
+            try {
+              document.querySelectorAll(selector).forEach(el => el.remove());
+            } catch(e) {}
+          });
+        };
+        removeLoveable();
+        setTimeout(removeLoveable, 100);
+        setTimeout(removeLoveable, 500);
+        setTimeout(removeLoveable, 1000);
+        document.addEventListener('DOMContentLoaded', removeLoveable);
+      })();
+    </script>
+  </body>
+</html>

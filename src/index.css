@@ -1,0 +1,212 @@
+/* CSS Validator: ignore unknown at-rules (Tailwind directives) */
+/* stylelint-disable */
+/* postcss-ignore */
+@tailwind base;
+/* postcss-ignore */
+@tailwind components;
+/* postcss-ignore */
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 215 33% 97%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 210 65% 11%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 33% 97%;
+    --secondary-foreground: 210 65% 11%;
+
+    --muted: 215 20% 90%;
+    --muted-foreground: 215 15% 45%;
+
+    --accent: 210 100% 56%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 210 100% 56%;
+
+    --radius: 0.75rem;
+
+    /* Aviation-themed gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(210 65% 11%) 0%, hsl(210 80% 20%) 50%, hsl(210 100% 56%) 100%);
+    --gradient-sky: linear-gradient(180deg, hsl(210 100% 96%) 0%, hsl(210 100% 88%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(215 33% 98%) 100%);
+    
+    /* Shadows */
+    --shadow-card: 0 2px 8px -2px hsl(210 65% 11% / 0.08);
+    --shadow-elevated: 0 8px 24px -4px hsl(210 65% 11% / 0.12);
+    --shadow-glow: 0 0 40px hsl(210 100% 56% / 0.2);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 210 65% 11%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 210 65% 11%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 50% 18%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 210 50% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 210 100% 56%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 50% 18%;
+    --input: 210 50% 18%;
+    --ring: 210 100% 56%;
+  }
+}
+
+@layer base {
+  * {
+    /* stylelint-disable-next-line */
+    @apply border-border;
+  }
+
+  body {
+    /* stylelint-disable-next-line */
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variant-ligatures: common-ligatures;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    /* stylelint-disable-next-line */
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .hover-lift {
+    /* stylelint-disable-next-line */
+    @apply transition-all duration-300 hover:-translate-y-1;
+    box-shadow: 0 2px 8px -2px hsl(210 65% 11% / 0.08);
+  }
+
+  .hover-lift:hover {
+    box-shadow: 0 8px 24px -4px hsl(210 65% 11% / 0.12);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-sky {
+    background: var(--gradient-sky);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Crew Badge Style */
+  .crew-badge {
+    /* stylelint-disable-next-line */
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full;
+    /* stylelint-disable-next-line */
+    @apply bg-primary/10 border-2 border-primary/20;
+    /* stylelint-disable-next-line */
+    @apply font-semibold text-sm tracking-wide uppercase;
+    /* stylelint-disable-next-line */
+    @apply shadow-sm backdrop-blur-sm;
+    transition: var(--transition-smooth);
+  }
+
+  .crew-badge:hover {
+    /* stylelint-disable-next-line */
+    @apply border-primary/40 bg-primary/15;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+
+  /* Runway Light Pattern */
+  .runway-lights {
+    position: relative;
+  }
+
+  .runway-lights::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      repeating-linear-gradient(
+        90deg,
+        hsl(var(--accent) / 0.03) 0px,
+        hsl(var(--accent) / 0.03) 2px,
+        transparent 2px,
+        transparent 60px
+      );
+    pointer-events: none;
+  }
+
+  /* Aircraft Glow Effect */
+  .aircraft-glow {
+    animation: glow 3s ease-in-out infinite;
+  }
+
+  /* Parallax Effect */
+  .parallax-bg {
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+/* Hide Loveable branding/watermarks */
+[class*="loveable"],
+[class*="Loveable"],
+[id*="loveable"],
+[id*="Loveable"],
+a[href*="loveable"],
+a[href*="Loveable"],
+div[class*="watermark"],
+div[class*="attribution"],
+div[class*="made-by"],
+div[data-loveable],
+div[data-made-by] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Hide any suspicious fixed position watermark elements */
+body > div[style*="fixed"][style*="bottom"],
+body > div[style*="fixed"][style*="right"] {
+  display: none !important;
+}
