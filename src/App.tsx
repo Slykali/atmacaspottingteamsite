@@ -32,6 +32,9 @@ import AdminActivityLogs from "./pages/admin/AdminActivityLogs";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import ChatWidget from "./components/ChatWidget";
+import UpdateModal from "./components/UpdateModal";
+import Messages from "./pages/Messages";
 
 // Note: React Query temporarily removed to resolve runtime error
 
@@ -109,12 +112,19 @@ const App = () => (
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/mesajlar" element={<Messages />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MaintenanceWrapper>
             }
           />
         </Routes>
+        
+        {/* Chat Widget - Tüm sayfalarda görünür */}
+        <ChatWidget />
+        
+        {/* Update Modal - Sadece yeni versiyonda gösterilir */}
+        <UpdateModal />
       </BrowserRouter>
     </TooltipProvider>
   </AuthProvider>

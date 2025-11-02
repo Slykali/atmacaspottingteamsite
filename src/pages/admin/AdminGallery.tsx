@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface GalleryImage {
@@ -29,7 +29,8 @@ export default function AdminGallery() {
   const [approvedImages, setApprovedImages] = useState<GalleryImage[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('pending'); // Varsayılan olarak bekleyen fotoğraflar
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     alt: '',
     tags: '',
@@ -41,27 +42,48 @@ export default function AdminGallery() {
 
   useEffect(() => {
     fetchImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchImages = async () => {
-    const { data, error } = await supabase
-      .from('gallery_images')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      toast.error('Galeri yüklenemedi');
-    } else {
-      const allImages = data || [];
-      setImages(allImages);
-      
-      // Pending (bekleyen) fotoğraflar
-      const pending = allImages.filter(img => img.status === 'pending');
-      setPendingImages(pending);
-      
-      // Approved (onaylanmış) fotoğraflar
-      const approved = allImages.filter(img => img.status === 'approved');
-      setApprovedImages(approved);
+      if (error) {
+        console.error('Galeri yükleme hatası:', error);
+        toast.error('Galeri yüklenemedi: ' + error.message);
+      } else {
+        const allImages = data || [];
+        setImages(allImages);
+        
+        // Pending (bekleyen) fotoğraflar
+        const pending = allImages.filter(img => img.status === 'pending' || img.status === null);
+        setPendingImages(pending);
+        
+        // Approved (onaylanmış) fotoğraflar
+        const approved = allImages.filter(img => img.status === 'approved');
+        setApprovedImages(approved);
+
+        console.log('Fotoğraflar yüklendi:', {
+          toplam: allImages.length,
+          bekleyen: pending.length,
+          onaylanmış: approved.length
+        });
+
+        // Eğer bekleyen fotoğraf varsa, otomatik olarak pending sekmesine geç
+        if (pending.length > 0 && activeTab === 'all') {
+          setActiveTab('pending');
+        }
+      }
+    } catch (err) {
+      console.error('Fetch hatası:', err);
+      toast.error('Fotoğraflar yüklenirken bir hata oluştu');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,25 +201,37 @@ export default function AdminGallery() {
   };
 
   const handleApprove = async (id: string) => {
-    const { error } = await supabase
-      .from('gallery_images')
-      .update({ status: 'approved' })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('gallery_images')
+        .update({ status: 'approved' })
+        .eq('id', id);
 
-    if (error) {
-      toast.error('Onaylama başarısız');
-    } else {
-      toast.success('Fotoğraf onaylandı');
-      fetchImages();
+      if (error) {
+        console.error('Onaylama hatası:', error);
+        toast.error('Onaylama başarısız: ' + error.message);
+      } else {
+        toast.success('✅ Fotoğraf onaylandı ve galeride görünüyor');
+        fetchImages();
+      }
+    } catch (err) {
+      console.error('Onaylama hatası:', err);
+      toast.error('Onaylama sırasında bir hata oluştu');
     }
   };
 
   const handleReject = async (id: string, src: string) => {
-    if (!confirm('Bu fotoğrafı reddetmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu fotoğrafı reddetmek istediğinize emin misiniz? Fotoğraf silinecektir.')) return;
 
-    // Fotoğrafı sil
-    await handleDelete(id, src);
-    toast.success('Fotoğraf reddedildi ve silindi');
+    try {
+      // Fotoğrafı sil
+      await handleDelete(id, src);
+      toast.success('❌ Fotoğraf reddedildi ve silindi');
+      fetchImages();
+    } catch (err) {
+      console.error('Reddetme hatası:', err);
+      toast.error('Fotoğraf reddedilirken bir hata oluştu');
+    }
   };
 
   const resetForm = () => {
@@ -362,20 +396,33 @@ export default function AdminGallery() {
         </Dialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="pending" className="gap-2">
-            <Clock className="h-4 w-4" />
-            Bekleyen ({pendingImages.length})
-          </TabsTrigger>
-          <TabsTrigger value="approved" className="gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Onaylanmış ({approvedImages.length})
-          </TabsTrigger>
-          <TabsTrigger value="all" className="gap-2">
-            Tümü ({images.length})
-          </TabsTrigger>
-        </TabsList>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Fotoğraflar yükleniyor...</p>
+          </div>
+        </div>
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="pending" className="gap-2 relative">
+              <Clock className="h-4 w-4" />
+              Bekleyen
+              {pendingImages.length > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {pendingImages.length > 99 ? '99+' : pendingImages.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Onaylanmış ({approvedImages.length})
+            </TabsTrigger>
+            <TabsTrigger value="all" className="gap-2">
+              Tümü ({images.length})
+            </TabsTrigger>
+          </TabsList>
 
         <TabsContent value="pending" className="mt-6">
           {pendingImages.length === 0 ? (
@@ -404,6 +451,7 @@ export default function AdminGallery() {
           </div>
         </TabsContent>
       </Tabs>
+      )}
     </div>
   );
 }

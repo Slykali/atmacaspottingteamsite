@@ -53,6 +53,7 @@ const Navbar = () => {
     { name: "Duyurular", path: "/duyurular" },
     { name: "Galeri", path: "/galeri" },
     { name: "Aktifler", path: "/aktifler" },
+    { name: "Mesajlar", path: "/mesajlar", beta: true },
     { name: "İletişim", path: "/iletisim" },
   ];
 
@@ -86,6 +87,11 @@ const Navbar = () => {
                   className="relative"
                 >
                   {link.name}
+                  {link.beta && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500 text-white rounded">
+                      BETA
+                    </span>
+                  )}
                 </Button>
               </Link>
             ))}
@@ -164,6 +170,11 @@ const Navbar = () => {
                     className="w-full justify-start"
                   >
                     {link.name}
+                    {link.beta && (
+                      <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500 text-white rounded">
+                        BETA
+                      </span>
+                    )}
                   </Button>
                 </Link>
               ))}
