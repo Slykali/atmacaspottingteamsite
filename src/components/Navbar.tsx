@@ -1,16 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Moon, Sun, Shield } from "lucide-react";
+import { Menu, X, Moon, Sun, Shield, LogOut } from "lucide-react";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import atmacaLogo from "@/assets/atmaca-logo.jpg";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const location = useLocation();
-  const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const { user, isAdmin, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Çıkış yapıldı');
+      navigate('/');
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Çıkış hatası:', error);
+      toast.error('Çıkış yapılırken bir hata oluştu');
+    }
+  };
 
   useEffect(() => {
     // Check if dark mode is enabled
@@ -99,6 +113,15 @@ const Navbar = () => {
                     </Button>
                   </Link>
                 )}
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="ml-2"
+                  onClick={handleSignOut}
+                  aria-label="Çıkış Yap"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
               </>
             ) : (
               <>
@@ -159,6 +182,14 @@ const Navbar = () => {
                       </Button>
                     </Link>
                   )}
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Çıkış Yap
+                  </Button>
                 </>
               ) : (
                 <>
