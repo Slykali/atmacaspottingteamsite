@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface GalleryImage {
@@ -16,12 +18,18 @@ interface GalleryImage {
   location: string | null;
   date: string | null;
   photographer: string | null;
+  status: string | null;
+  user_id: string | null;
+  created_at: string | null;
 }
 
 export default function AdminGallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
+  const [pendingImages, setPendingImages] = useState<GalleryImage[]>([]);
+  const [approvedImages, setApprovedImages] = useState<GalleryImage[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const [formData, setFormData] = useState({
     alt: '',
     tags: '',
@@ -44,7 +52,16 @@ export default function AdminGallery() {
     if (error) {
       toast.error('Galeri yüklenemedi');
     } else {
-      setImages(data || []);
+      const allImages = data || [];
+      setImages(allImages);
+      
+      // Pending (bekleyen) fotoğraflar
+      const pending = allImages.filter(img => img.status === 'pending');
+      setPendingImages(pending);
+      
+      // Approved (onaylanmış) fotoğraflar
+      const approved = allImages.filter(img => img.status === 'approved');
+      setApprovedImages(approved);
     }
   };
 
@@ -82,16 +99,17 @@ export default function AdminGallery() {
       .from('gallery')
       .getPublicUrl(filePath);
 
-    const { error: dbError } = await supabase
-      .from('gallery_images')
-      .insert([{
-        src: publicUrl,
-        alt: formData.alt,
-        tags: formData.tags.split(',').map(t => t.trim()),
-        location: formData.location || null,
-        date: formData.date || null,
-        photographer: formData.photographer || null,
-      }]);
+      const { error: dbError } = await supabase
+        .from('gallery_images')
+        .insert([{
+          src: publicUrl,
+          alt: formData.alt,
+          tags: formData.tags.split(',').map(t => t.trim()),
+          location: formData.location || null,
+          date: formData.date || null,
+          photographer: formData.photographer || null,
+          status: 'approved', // Admin eklediği fotoğraflar direkt onaylı
+        }]);
 
     if (dbError) {
       toast.error('Veritabanına kayıt başarısız');
@@ -160,6 +178,28 @@ export default function AdminGallery() {
     }
   };
 
+  const handleApprove = async (id: string) => {
+    const { error } = await supabase
+      .from('gallery_images')
+      .update({ status: 'approved' })
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Onaylama başarısız');
+    } else {
+      toast.success('Fotoğraf onaylandı');
+      fetchImages();
+    }
+  };
+
+  const handleReject = async (id: string, src: string) => {
+    if (!confirm('Bu fotoğrafı reddetmek istediğinize emin misiniz?')) return;
+
+    // Fotoğrafı sil
+    await handleDelete(id, src);
+    toast.success('Fotoğraf reddedildi ve silindi');
+  };
+
   const resetForm = () => {
     setFormData({
       alt: '',
@@ -172,10 +212,86 @@ export default function AdminGallery() {
     setIsDialogOpen(false);
   };
 
+  const renderImageCard = (image: GalleryImage) => (
+    <Card key={image.id}>
+      <CardHeader>
+        <img
+          src={image.src}
+          alt={image.alt}
+          className="w-full h-48 object-cover rounded"
+        />
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between mb-2">
+          <p className="font-medium">{image.alt}</p>
+          {image.status === 'pending' && (
+            <Badge variant="outline" className="gap-1">
+              <Clock className="h-3 w-3" />
+              Bekliyor
+            </Badge>
+          )}
+          {image.status === 'approved' && (
+            <Badge variant="default" className="gap-1 bg-green-600">
+              <CheckCircle className="h-3 w-3" />
+              Onaylı
+            </Badge>
+          )}
+        </div>
+        {image.location && <p className="text-sm text-muted-foreground">📍 {image.location}</p>}
+        {image.photographer && <p className="text-sm text-muted-foreground">📷 {image.photographer}</p>}
+        {image.created_at && (
+          <p className="text-xs text-muted-foreground mt-1">
+            📅 {new Date(image.created_at).toLocaleDateString('tr-TR')}
+          </p>
+        )}
+        <div className="flex gap-2 mt-4">
+          {image.status === 'pending' && (
+            <>
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 gap-1"
+                onClick={() => handleApprove(image.id)}
+              >
+                <CheckCircle className="h-4 w-4" />
+                Onayla
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 gap-1"
+                onClick={() => handleReject(image.id, image.src)}
+              >
+                <XCircle className="h-4 w-4" />
+                Reddet
+              </Button>
+            </>
+          )}
+          {image.status === 'approved' && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full gap-1"
+              onClick={() => handleDelete(image.id, image.src)}
+            >
+              <Trash2 className="h-4 w-4" />
+              Sil
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Galeri</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Galeri Yönetimi</h1>
+          <p className="text-muted-foreground mt-1">
+            Fotoğrafları onaylayın, reddedin veya silin
+          </p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -246,33 +362,48 @@ export default function AdminGallery() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {images.map((image) => (
-          <Card key={image.id}>
-            <CardHeader>
-              <img
-                src={image.src}
-                alt={image.alt}
-                className="w-full h-48 object-cover rounded"
-              />
-            </CardHeader>
-            <CardContent>
-              <p className="font-medium mb-2">{image.alt}</p>
-              {image.location && <p className="text-sm text-muted-foreground">📍 {image.location}</p>}
-              {image.photographer && <p className="text-sm text-muted-foreground">📷 {image.photographer}</p>}
-              <Button
-                variant="destructive"
-                size="sm"
-                className="mt-4 w-full"
-                onClick={() => handleDelete(image.id, image.src)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Sil
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="pending" className="gap-2">
+            <Clock className="h-4 w-4" />
+            Bekleyen ({pendingImages.length})
+          </TabsTrigger>
+          <TabsTrigger value="approved" className="gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Onaylanmış ({approvedImages.length})
+          </TabsTrigger>
+          <TabsTrigger value="all" className="gap-2">
+            Tümü ({images.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="mt-6">
+          {pendingImages.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Bekleyen fotoğraf yok</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pendingImages.map(renderImageCard)}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="approved" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {approvedImages.map(renderImageCard)}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="all" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {images.map(renderImageCard)}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

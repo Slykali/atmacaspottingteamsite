@@ -15,7 +15,7 @@ import { Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 
 const UploadPhoto = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -94,6 +94,24 @@ const UploadPhoto = () => {
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
+      // Check if user is admin or developer
+      let userStatus = 'pending';
+      let successMessage = "Fotoğrafınız yüklendi ve inceleme bekliyor. Onaylandığında galeride görünecektir.";
+      
+      if (isAdmin) {
+        // Check if user is also developer
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .in('role', ['admin', 'developer']);
+        
+        if (roles && roles.length > 0) {
+          userStatus = 'approved'; // Admin/Developer fotoğrafları direkt onaylı
+          successMessage = "Fotoğrafınız başarıyla eklendi ve galeride görünüyor.";
+        }
+      }
+
       // Insert into database
       const { error: dbError } = await supabase
         .from('gallery_images')
@@ -105,22 +123,23 @@ const UploadPhoto = () => {
           date: formData.date || null,
           photographer: formData.photographer || null,
           user_id: user.id,
-          status: 'pending', // Will be reviewed by admin
+          status: userStatus, // Admin/Developer: approved, Diğerleri: pending
         });
 
       if (dbError) throw dbError;
 
       toast({
         title: "Başarılı!",
-        description: "Fotoğrafınız yüklendi ve inceleme bekliyor. Onaylandığında galeride görünecektir.",
+        description: successMessage,
       });
 
       navigate('/gallery');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Fotoğraf yüklenirken bir hata oluştu.";
       toast({
         title: "Yükleme hatası",
-        description: error.message || "Fotoğraf yüklenirken bir hata oluştu.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
