@@ -30,11 +30,13 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminActivityLogs from "./pages/admin/AdminActivityLogs";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import DeveloperPanel from "./pages/admin/DeveloperPanel";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import ChatWidget from "./components/ChatWidget";
 import UpdateModal from "./components/UpdateModal";
 import Messages from "./pages/Messages";
+import CompetitionResults from "./pages/CompetitionResults";
 
 // Note: React Query temporarily removed to resolve runtime error
 
@@ -91,6 +93,7 @@ const App = () => (
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="activity-logs" element={<AdminActivityLogs />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="developer" element={<DeveloperPanel />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
           
@@ -113,6 +116,7 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/mesajlar" element={<Messages />} />
+                  <Route path="/yarisma-sonuclari" element={<CompetitionResults />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MaintenanceWrapper>

@@ -5,13 +5,13 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminSidebar } from '@/components/AdminSidebar';
 
 export default function AdminLayout() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, isDeveloper, loading } = useAuth();
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
   }
 
-  if (!user || !isAdmin) {
+  if (!user || (!isAdmin && !isDeveloper)) {
     return <Navigate to="/auth" replace />;
   }
 

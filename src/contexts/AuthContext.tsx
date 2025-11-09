@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isDeveloper: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
@@ -18,6 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDeveloper, setIsDeveloper] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,9 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setTimeout(() => {
           checkAdminStatus(session.user.id);
+          checkDeveloperStatus(session.user.id);
         }, 0);
       } else {
         setIsAdmin(false);
+        setIsDeveloper(false);
       }
     });
 
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         checkAdminStatus(session.user.id);
+        checkDeveloperStatus(session.user.id);
       } else {
         setLoading(false);
       }
@@ -66,6 +71,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const checkDeveloperStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .in('role', ['admin', 'developer'])
+        .maybeSingle();
+      
+      setIsDeveloper(!!data);
+    } catch (error) {
+      console.error('Error checking developer status:', error);
+      setIsDeveloper(false);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
@@ -87,10 +108,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setIsDeveloper(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isDeveloper, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

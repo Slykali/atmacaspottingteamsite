@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Image, Users, FileText, LogOut, Settings, Mail, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Image, Users, FileText, LogOut, Settings, Mail, MessageSquare, Code } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ const items = [
   { title: 'Ekip Üyeleri', url: '/admin/members', icon: Users },
   { title: 'Başvurular', url: '/admin/applications', icon: Mail },
   { title: 'Öneriler', url: '/admin/suggestions', icon: MessageSquare },
+  { title: 'Developer Panel', url: '/admin/developer', icon: Code },
   { title: 'Ayarlar', url: '/admin/settings', icon: Settings },
 ];
 

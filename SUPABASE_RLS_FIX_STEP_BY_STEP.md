@@ -54,7 +54,7 @@ FOR INSERT
 TO anon
 WITH CHECK (true);
 
--- 4. Kontrol - Policy oluşturuldu mu?
+-- 4. Kontrol - Policy oluşturuldu mu? 
 SELECT 
   policyname AS "Policy Adı",
   roles AS "Roller",

@@ -27,6 +27,7 @@ export default function AdminGallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [pendingImages, setPendingImages] = useState<GalleryImage[]>([]);
   const [approvedImages, setApprovedImages] = useState<GalleryImage[]>([]);
+  const [rejectedImages, setRejectedImages] = useState<GalleryImage[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState('pending'); // Varsayılan olarak bekleyen fotoğraflar
@@ -204,7 +205,11 @@ export default function AdminGallery() {
     try {
       const { error } = await supabase
         .from('gallery_images')
-        .update({ status: 'approved' })
+        .update({ 
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: null,
+        })
         .eq('id', id);
 
       if (error) {
@@ -221,13 +226,26 @@ export default function AdminGallery() {
   };
 
   const handleReject = async (id: string, src: string) => {
-    if (!confirm('Bu fotoğrafı reddetmek istediğinize emin misiniz? Fotoğraf silinecektir.')) return;
+    const reason = prompt('Red nedeni (opsiyonel):');
+    if (reason === null) return; // Kullanıcı iptal etti
 
     try {
-      // Fotoğrafı sil
-      await handleDelete(id, src);
-      toast.success('❌ Fotoğraf reddedildi ve silindi');
-      fetchImages();
+      const { error } = await supabase
+        .from('gallery_images')
+        .update({ 
+          status: 'rejected',
+          rejection_reason: reason || null,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Reddetme hatası:', error);
+        toast.error('Fotoğraf reddedilemedi: ' + error.message);
+      } else {
+        toast.success('❌ Fotoğraf reddedildi');
+        fetchImages();
+      }
     } catch (err) {
       console.error('Reddetme hatası:', err);
       toast.error('Fotoğraf reddedilirken bir hata oluştu');
@@ -258,18 +276,24 @@ export default function AdminGallery() {
       <CardContent>
         <div className="flex items-center justify-between mb-2">
           <p className="font-medium">{image.alt}</p>
-          {image.status === 'pending' && (
-            <Badge variant="outline" className="gap-1">
-              <Clock className="h-3 w-3" />
-              Bekliyor
-            </Badge>
-          )}
-          {image.status === 'approved' && (
-            <Badge variant="default" className="gap-1 bg-green-600">
-              <CheckCircle className="h-3 w-3" />
-              Onaylı
-            </Badge>
-          )}
+        {image.status === 'pending' && (
+          <Badge variant="outline" className="gap-1">
+            <Clock className="h-3 w-3" />
+            Bekliyor
+          </Badge>
+        )}
+        {image.status === 'approved' && (
+          <Badge variant="default" className="gap-1 bg-green-600">
+            <CheckCircle className="h-3 w-3" />
+            Onaylı
+          </Badge>
+        )}
+        {image.status === 'rejected' && (
+          <Badge variant="destructive" className="gap-1">
+            <XCircle className="h-3 w-3" />
+            Reddedildi
+          </Badge>
+        )}
         </div>
         {image.location && <p className="text-sm text-muted-foreground">📍 {image.location}</p>}
         {image.photographer && <p className="text-sm text-muted-foreground">📷 {image.photographer}</p>}
@@ -302,15 +326,58 @@ export default function AdminGallery() {
             </>
           )}
           {image.status === 'approved' && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="w-full gap-1"
-              onClick={() => handleDelete(image.id, image.src)}
-            >
-              <Trash2 className="h-4 w-4" />
-              Sil
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 gap-1"
+                onClick={() => {
+                  // Status'u pending'e çevir (tekrar inceleme için)
+                  supabase
+                    .from('gallery_images')
+                    .update({ status: 'pending', reviewed_at: null })
+                    .eq('id', image.id)
+                    .then(() => {
+                      toast.success('Fotoğraf tekrar inceleme için beklemeye alındı');
+                      fetchImages();
+                    });
+                }}
+              >
+                <Clock className="h-4 w-4" />
+                Bekletmeye Al
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 gap-1"
+                onClick={() => handleDelete(image.id, image.src)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Sil
+              </Button>
+            </>
+          )}
+          {image.status === 'rejected' && (
+            <>
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 gap-1"
+                onClick={() => handleApprove(image.id)}
+              >
+                <CheckCircle className="h-4 w-4" />
+                Onayla
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1 gap-1"
+                onClick={() => handleDelete(image.id, image.src)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Sil
+              </Button>
+            </>
           )}
         </div>
       </CardContent>
@@ -419,6 +486,10 @@ export default function AdminGallery() {
               <CheckCircle className="h-4 w-4" />
               Onaylanmış ({approvedImages.length})
             </TabsTrigger>
+            <TabsTrigger value="rejected" className="gap-2">
+              <XCircle className="h-4 w-4" />
+              Reddedilen ({images.filter(img => img.status === 'rejected').length})
+            </TabsTrigger>
             <TabsTrigger value="all" className="gap-2">
               Tümü ({images.length})
             </TabsTrigger>
@@ -443,6 +514,21 @@ export default function AdminGallery() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {approvedImages.map(renderImageCard)}
           </div>
+        </TabsContent>
+
+        <TabsContent value="rejected" className="mt-6">
+          {images.filter(img => img.status === 'rejected').length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <XCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Reddedilen fotoğraf yok</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {images.filter(img => img.status === 'rejected').map(renderImageCard)}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="all" className="mt-6">
